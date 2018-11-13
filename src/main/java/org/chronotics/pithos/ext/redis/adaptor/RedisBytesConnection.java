@@ -1,8 +1,8 @@
 package org.chronotics.pithos.ext.redis.adaptor;
 
-import org.chronotics.pithos.ext.redis.log.Logger;
-import org.chronotics.pithos.ext.redis.log.LoggerFactory;
-import org.chronotics.pithos.ext.redis.util.ExceptionUtil;
+import org.chronotics.pandora.exception.ExceptionUtil;
+import org.chronotics.pandora.log.Logger;
+import org.chronotics.pandora.log.LoggerFactory;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.JedisPoolConfig;
