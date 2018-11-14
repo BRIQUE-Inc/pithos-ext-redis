@@ -1,4 +1,4 @@
-package org.chronotics.pithos.ext.redis.adaptor;
+package org.chronotics.pithos.ext.redis.java.adaptor;
 
 import org.chronotics.pandora.java.exception.ExceptionUtil;
 import org.chronotics.pandora.java.log.Logger;
@@ -9,13 +9,13 @@ import redis.clients.jedis.JedisPoolConfig;
 
 import java.util.*;
 
-public class RedisBytesConnection {
+public class RedisConnection {
     private Logger log = LoggerFactory.getLogger(getClass());
     private JedisPool redisPool = null;
     private Integer intTimeout = 300000;
-    private static HashMap<Integer, RedisBytesConnection> mapJedis = new HashMap<>();
+    private static HashMap<Integer, RedisConnection> mapJedis = new HashMap<>();
 
-    public RedisBytesConnection(String strRedisHost, Integer intRedisPort, String strRedisPass, Integer intRedisDB, Integer intMaxPool) {
+    public RedisConnection(String strRedisHost, Integer intRedisPort, String strRedisPass, Integer intRedisDB, Integer intMaxPool) {
         try {
             JedisPoolConfig poolConfig = new JedisPoolConfig();
             poolConfig.setMaxTotal(intMaxPool);
@@ -41,14 +41,14 @@ public class RedisBytesConnection {
         }
     }
 
-    public static RedisBytesConnection getInstance(String strRedisHost, Integer intRedisPort, String strRedisPass, Integer intRedisDB, Integer intMaxPool) {
+    public static RedisConnection getInstance(String strRedisHost, Integer intRedisPort, String strRedisPass, Integer intRedisDB, Integer intMaxPool) {
         Integer intCurHashCode = (strRedisHost + intRedisPort.toString() + strRedisPass + intRedisDB.toString() + intMaxPool.toString())
                 .hashCode();
 
         if (!mapJedis.containsKey(intCurHashCode)) {
-            synchronized (RedisBytesConnection.class) {
+            synchronized (RedisConnection.class) {
                 if (!mapJedis.containsKey(intCurHashCode)) {
-                    new RedisBytesConnection(strRedisHost, intRedisPort, strRedisPass, intRedisDB, intMaxPool);
+                    new RedisConnection(strRedisHost, intRedisPort, strRedisPass, intRedisDB, intMaxPool);
                 }
             }
         }
@@ -78,7 +78,7 @@ public class RedisBytesConnection {
         if (objJedisClient != null) {
             try {
                 if (intExpireSec > 0) {
-                    objJedisClient.expire(strKey.getBytes(), intExpireSec);
+                    objJedisClient.expire(strKey, intExpireSec);
                 }
 
                 bIsSet = true;
@@ -99,7 +99,7 @@ public class RedisBytesConnection {
 
         if (objJedisClient != null) {
             try {
-                strType = objJedisClient.type(strKey.getBytes());
+                strType = objJedisClient.type(strKey);
             } catch (Exception objEx) {
                 throw objEx;
             } finally {
@@ -117,7 +117,7 @@ public class RedisBytesConnection {
 
         if (objJedisClient != null) {
             try {
-                objJedisClient.del(strKey.getBytes());
+                objJedisClient.del(strKey);
 
                 bIsDel = true;
             } catch (Exception objEx) {
@@ -137,7 +137,7 @@ public class RedisBytesConnection {
 
         if (objJedisClient != null) {
             try {
-                objJedisClient.set(strKey.getBytes(), strValue.getBytes());
+                objJedisClient.set(strKey, strValue);
                 setExpire(strKey, intExpireSec);
 
                 bIsSet = true;
@@ -151,14 +151,14 @@ public class RedisBytesConnection {
         return bIsSet;
     }
 
-    public byte[] getKey(String strKey) {
-        byte[] arrValue = null;
+    public String getKey(String strKey) {
+        String strValue = "";
 
         Jedis objJedisClient = getJedis();
 
         if (objJedisClient != null) {
             try {
-                arrValue = objJedisClient.get(strKey.getBytes());
+                strValue = objJedisClient.get(strKey);
             } catch (Exception objEx) {
                 throw objEx;
             } finally {
@@ -166,8 +166,9 @@ public class RedisBytesConnection {
             }
         }
 
-        return arrValue;
+        return strValue;
     }
+
 
     public Boolean checkKey(String strKey) {
         Boolean bIsExist = false;
@@ -176,7 +177,7 @@ public class RedisBytesConnection {
 
         if (objJedisClient != null) {
             try {
-                bIsExist = objJedisClient.exists(strKey.getBytes());
+                bIsExist = objJedisClient.exists(strKey);
             } catch (Exception objEx) {
                 throw objEx;
             } finally {
@@ -187,14 +188,14 @@ public class RedisBytesConnection {
         return bIsExist;
     }
 
-    public Boolean hSetFieldBytes(String strKey, String strField, byte[] arrValue, Integer intTimeoutSecond) {
+    public Boolean hSetField(String strKey, String strField, String strValue, Integer intTimeoutSecond) {
         Boolean bSuccess = false;
 
         Jedis objJedisClient = getJedis();
 
         if (objJedisClient != null) {
             try {
-                objJedisClient.hset(strKey.getBytes(), strField.getBytes(), arrValue);
+                objJedisClient.hset(strKey, strField, strValue);
 
                 if (intTimeoutSecond > 0) {
                     objJedisClient.expire(strKey, intTimeoutSecond);
@@ -211,14 +212,14 @@ public class RedisBytesConnection {
         return bSuccess;
     }
 
-    public HashMap<byte[], byte[]> hGetAllBytes(String strKey) {
-        HashMap<byte[], byte[]> mapValue = new HashMap<>();
+    public HashMap<String, String> hGetAll(String strKey) {
+        HashMap<String, String> mapValue = new HashMap<String, String>();
 
         Jedis objJedisClient = getJedis();
 
         if (objJedisClient != null) {
             try {
-                mapValue = (HashMap<byte[], byte[]>)objJedisClient.hgetAll(strKey.getBytes());
+                mapValue = (HashMap<String, String>) objJedisClient.hgetAll(strKey);
             } catch (Exception objEx) {
                 throw objEx;
             } finally {
@@ -229,14 +230,14 @@ public class RedisBytesConnection {
         return mapValue;
     }
 
-    public byte[] hGetBytesByField(String strKey, String strField) {
-        byte[] arrValue = null;
+    public String hGetByField(String strKey, String strField) {
+        String strValue = "";
 
         Jedis objJedisClient = getJedis();
 
         if (objJedisClient != null) {
             try {
-                arrValue = objJedisClient.hget(strKey.getBytes(), strField.getBytes());
+                strValue = objJedisClient.hget(strKey, strField);
             } catch (Exception objEx) {
                 throw objEx;
             } finally {
@@ -244,17 +245,17 @@ public class RedisBytesConnection {
             }
         }
 
-        return arrValue;
+        return strValue;
     }
 
-    public Boolean hDelBytes(String strKey, String strField) {
+    public Boolean hDel(String strKey, String strField) {
         Boolean bIsDeleted = false;
 
         Jedis objJedisClient = getJedis();
 
         if (objJedisClient != null) {
             try {
-                Long lDel = objJedisClient.hdel(strKey.getBytes(), strField.getBytes());
+                Long lDel = objJedisClient.hdel(strKey, strField);
                 bIsDeleted = true;
             } catch (Exception objEx) {
                 throw objEx;
@@ -273,7 +274,7 @@ public class RedisBytesConnection {
 
         if (objJedisClient != null) {
             try {
-                lTotal = objJedisClient.scard(strKey.getBytes());
+                lTotal = objJedisClient.scard(strKey);
             } catch (Exception objEx) {
                 throw objEx;
             } finally {
@@ -284,14 +285,14 @@ public class RedisBytesConnection {
         return lTotal;
     }
 
-    public Set<byte[]> sGet(String strKey) {
-        Set<byte[]> setTotal = new HashSet<>();
+    public Set<String> sGet(String strKey) {
+        Set<String> setTotal = new HashSet<>();
 
         Jedis objJedisClient = getJedis();
 
         if (objJedisClient != null) {
             try {
-                setTotal = objJedisClient.smembers(strKey.getBytes());
+                setTotal = objJedisClient.smembers(strKey);
             } catch (Exception objEx) {
                 throw objEx;
             } finally {
@@ -302,14 +303,14 @@ public class RedisBytesConnection {
         return setTotal;
     }
 
-    public Set<byte[]> sPop(String strKey, Long lNumItem) {
-        Set<byte[]> setTotal = new HashSet<>();
+    public Set<String> sPop(String strKey, Long lNumItem) {
+        Set<String> setTotal = new HashSet<>();
 
         Jedis objJedisClient = getJedis();
 
         if (objJedisClient != null) {
             try {
-                setTotal = objJedisClient.spop(strKey.getBytes(), lNumItem);
+                setTotal = objJedisClient.spop(strKey, lNumItem);
             } catch (Exception objEx) {
                 throw objEx;
             } finally {
@@ -327,7 +328,7 @@ public class RedisBytesConnection {
 
         if (objJedisClient != null) {
             try {
-                objJedisClient.sadd(strKey.getBytes(), strValue.getBytes());
+                objJedisClient.sadd(strKey, strValue);
 
                 if (intTimeoutSecond > 0) {
                     objJedisClient.expire(strKey, intTimeoutSecond);
@@ -351,7 +352,7 @@ public class RedisBytesConnection {
 
         if (objJedisClient != null) {
             try {
-                lTotal = objJedisClient.zcard(strKey.getBytes());
+                lTotal = objJedisClient.zcard(strKey);
             } catch (Exception objEx) {
                 throw objEx;
             } finally {
@@ -369,7 +370,7 @@ public class RedisBytesConnection {
 
         if (objJedisClient != null) {
             try {
-                dbScore = objJedisClient.zscore(strKey.getBytes(), strMember.getBytes());
+                dbScore = objJedisClient.zscore(strKey, strMember);
             } catch (Exception objEx) {
                 throw objEx;
             } finally {
@@ -387,7 +388,7 @@ public class RedisBytesConnection {
 
         if (objJedisClient != null) {
             try {
-                Long lRem = objJedisClient.zrem(strKey.getBytes(), strMember.getBytes());
+                Long lRem = objJedisClient.zrem(strKey, strMember);
                 bIsRemoved = true;
             } catch (Exception objEx) {
                 throw objEx;
@@ -406,7 +407,7 @@ public class RedisBytesConnection {
 
         if (objJedisClient != null) {
             try {
-                Long lAdded = objJedisClient.zadd(strKey.getBytes(), dbScore, strMember.getBytes());
+                Long lAdded = objJedisClient.zadd(strKey, dbScore, strMember);
 
                 if (intTimeoutSecond > 0) {
                     objJedisClient.expire(strKey, intTimeoutSecond);
@@ -423,15 +424,15 @@ public class RedisBytesConnection {
         return bIsAdded;
     }
 
-    public List<byte[]> zRevRangeByScore(String strKey, Double dbMinScore, Double dbMaxScore) {
-        List<byte[]> lstResult = new ArrayList<>();
+    public List<String> zRevRangeByScore(String strKey, Double dbMinScore, Double dbMaxScore) {
+        List<String> lstResult = new ArrayList<>();
 
         Jedis objJedisClient = getJedis();
 
         if (objJedisClient != null) {
             try {
-                objJedisClient.zrevrangeByScore(strKey.getBytes(), dbMaxScore, dbMinScore).forEach(arrFoundKey -> {
-                    lstResult.add(arrFoundKey);
+                objJedisClient.zrevrangeByScore(strKey, dbMaxScore, dbMinScore).forEach(strFoundKey -> {
+                    lstResult.add(strFoundKey);
                 });
             } catch (Exception objEx) {
                 throw objEx;
