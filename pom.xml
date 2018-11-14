@@ -6,7 +6,7 @@
 
     <groupId>org.chronotics</groupId>
     <artifactId>pithos-ext-redis</artifactId>
-    <version>1.0-SNAPSHOT</version>
+    <version>1.3-SNAPSHOT</version>
 
     <repositories>
         <repository>
@@ -118,13 +118,14 @@
         <scala.compat.version>2.11</scala.compat.version>
         <junit.version>5.3.1</junit.version>
         <powermock.version>1.7.4</powermock.version>
+        <chron.version>1.3-SNAPSHOT</chron.version>
     </properties>
 
     <dependencies>
         <dependency>
             <groupId>org.chronotics</groupId>
             <artifactId>pandora</artifactId>
-            <version>1.0-SNAPSHOT</version>
+            <version>${chron.version}</version>
         </dependency>
         <!-- Jedis -->
         <dependency>
