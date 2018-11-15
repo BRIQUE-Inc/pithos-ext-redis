@@ -9,7 +9,7 @@ object RedisPoolConnection {
 
   var lockObject = new Object()
 
-  def getInstance(host: String, port: Int, database: Int, secret: String, timeout: Int, poolWaitTimeout: Int) = {
+  def getInstance(host: String, port: Int, database: Int, secret: String, timeout: Int = 60000, poolWaitTimeout: Int = 60000) = {
     lockObject.synchronized {
       if (_instance == null) {
         _instance = new RedisPoolConnection(host, port, database, secret, timeout, poolWaitTimeout)
