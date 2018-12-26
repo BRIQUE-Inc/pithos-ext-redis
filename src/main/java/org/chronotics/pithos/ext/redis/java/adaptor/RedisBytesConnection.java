@@ -442,4 +442,94 @@ public class RedisBytesConnection {
 
         return lstResult;
     }
+
+    public Long lLen(String strKey) {
+        Long lTotal = 0L;
+
+        Jedis objJedisClient = getJedis();
+
+        if (objJedisClient != null) {
+            try {
+                lTotal = objJedisClient.llen(strKey.getBytes());
+            } catch (Exception objEx) {
+                throw objEx;
+            } finally {
+                closedJedisClient(objJedisClient);
+            }
+        }
+
+        return lTotal;
+    }
+
+    public List<byte[]> lGet(String strKey) {
+        List<byte[]> lTotal = new ArrayList<>();
+
+        Jedis objJedisClient = getJedis();
+
+        if (objJedisClient != null) {
+            try {
+                lTotal = objJedisClient.lrange(strKey.getBytes(), 0, -1);
+            } catch (Exception objEx) {
+                throw objEx;
+            } finally {
+                closedJedisClient(objJedisClient);
+            }
+        }
+
+        return lTotal;
+    }
+
+    public List<byte[]> lPop(String strKey, Long lNumItem) {
+        List<byte[]> lTotal = new ArrayList<>();
+
+        Jedis objJedisClient = getJedis();
+
+        if (objJedisClient != null) {
+            try {
+                byte[] arrKeyByte = strKey.getBytes();
+
+                for (long lCount = 0; lCount < lNumItem; lCount++) {
+                    byte[] strCur = objJedisClient.lpop(arrKeyByte);
+
+                    if (strCur != null && strCur.length > 0) {
+                        lTotal.add(strCur);
+                    } else {
+                        break;
+                    }
+                }
+            } catch (Exception objEx) {
+                throw objEx;
+            } finally {
+                closedJedisClient(objJedisClient);
+            }
+        }
+
+        return lTotal;
+    }
+
+    public Boolean lAdd(String strKey, List<byte[]> lValue, Integer intTimeoutSecond) {
+        Boolean bSuccess = false;
+
+        Jedis objJedisClient = getJedis();
+
+        if (objJedisClient != null && lValue != null && lValue.size() > 0) {
+            try {
+                for (int intCount = 0; intCount < lValue.size(); intCount++) {
+                    objJedisClient.lpush(strKey.getBytes(), lValue.get(intCount));
+                }
+
+                if (intTimeoutSecond > 0) {
+                    objJedisClient.expire(strKey.getBytes(), intTimeoutSecond);
+                }
+
+                bSuccess = true;
+            } catch (Exception objEx) {
+                throw objEx;
+            } finally {
+                closedJedisClient(objJedisClient);
+            }
+        }
+
+        return bSuccess;
+    }
 }
