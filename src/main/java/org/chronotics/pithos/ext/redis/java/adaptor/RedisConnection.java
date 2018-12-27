@@ -15,6 +15,11 @@ public class RedisConnection {
     private Integer intTimeout = 300000;
     private static HashMap<Integer, RedisConnection> mapJedis = new HashMap<>();
 
+    private static Integer getHashCode(String strRedisHost, Integer intRedisPort, String strRedisPass, Integer intRedisDB, Integer intMaxPool) {
+        return (strRedisHost + intRedisPort.toString() + strRedisPass + intRedisDB.toString() + intMaxPool.toString())
+                .hashCode();
+    }
+
     public RedisConnection(String strRedisHost, Integer intRedisPort, String strRedisPass, Integer intRedisDB, Integer intMaxPool) {
         try {
             JedisPoolConfig poolConfig = new JedisPoolConfig();
@@ -27,8 +32,7 @@ public class RedisConnection {
             poolConfig.setNumTestsPerEvictionRun(1000);
             poolConfig.setTimeBetweenEvictionRunsMillis(intTimeout);
 
-            Integer intHashCode = (strRedisHost + intRedisPort.toString() + strRedisPass + intRedisDB.toString())
-                    .hashCode();
+            Integer intHashCode = getHashCode(strRedisHost, intRedisPort, strRedisPass, intRedisDB, intMaxPool);
 
             redisPool = new JedisPool(poolConfig, strRedisHost, intRedisPort, intTimeout, strRedisPass, intRedisDB);
 
@@ -42,8 +46,7 @@ public class RedisConnection {
     }
 
     public static RedisConnection getInstance(String strRedisHost, Integer intRedisPort, String strRedisPass, Integer intRedisDB, Integer intMaxPool) {
-        Integer intCurHashCode = (strRedisHost + intRedisPort.toString() + strRedisPass + intRedisDB.toString() + intMaxPool.toString())
-                .hashCode();
+        Integer intCurHashCode = getHashCode(strRedisHost, intRedisPort, strRedisPass, intRedisDB, intMaxPool);
 
         if (!mapJedis.containsKey(intCurHashCode)) {
             synchronized (RedisConnection.class) {
