@@ -8,13 +8,13 @@
     <artifactId>pithos-ext-redis</artifactId>
     <version>1.4-SNAPSHOT</version>
 
-    <repositories>
+    <!--<repositories>
         <repository>
             <id>brique-server</id>
             <name>Brique Repositories</name>
             <url>http://115.144.55.48:8081/nexus/content/groups/brique/</url>
         </repository>
-    </repositories>
+    </repositories>-->
 
     <distributionManagement>
         <repository>
